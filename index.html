@@ -673,9 +673,12 @@ function lhConfirmPdj(){
         lhPdjStep(4);
         setTimeout(function(){try{window.top.location.href=res.url;}catch(e){window.open(res.url,'_blank');}},1500);
       } else {
-        document.getElementById('lh-pdj-confirm-msg').innerHTML='<div style="font-size:32px;margin-bottom:12px">✓</div><strong style="color:#1F3B2D;font-size:15px">Réservation confirmée !</strong><br><br>'+lhPdjDays.length+' petit-déjeuner'+(lhPdjDays.length>1?'s':'')+' · <strong>'+grandTotal+'€</strong><br><br><span style="font-size:11px;color:#aaa">Paiement à l\'accueil ou au moment du petit-déjeuner.<br>Un email de confirmation vous sera envoyé.</span>';
+        document.getElementById('lh-pdj-confirm-msg').innerHTML='<div style="font-size:32px;margin-bottom:12px">✓</div><strong style="color:#1F3B2D;font-size:15px">Réservation confirmée !</strong><br><br>'
+        +(effectivePay==='confirmation'
+          ? lhPdjDays.length+' petit-déjeuner'+(lhPdjDays.length>1?'s':'')+' bien programmé'+(lhPdjDays.length>1?'s':'')+'. Nous vous attendons avec plaisir !<br><br><span style=\"font-size:11px;color:#aaa\">Vous allez bientôt recevoir un email de confirmation.</span>'
+          : lhPdjDays.length+' petit-déjeuner'+(lhPdjDays.length>1?'s':'')+' · <strong>'+grandTotal+'€</strong><br><br><span style="font-size:11px;color:#aaa">Paiement à l\'accueil ou au moment du petit-déjeuner.<br>Vous allez bientôt recevoir un email de confirmation.</span>'
+        );
         document.getElementById('lh-pdj-back-home').style.display='block';
-        lhPdjStep(4);
       }
     } else {btn.disabled=false;btn.textContent='Confirmer la réservation';}
   })
