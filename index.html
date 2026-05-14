@@ -727,7 +727,7 @@ function lhPdjReset(){
       </div>
     </div>
     <!-- PDJ notif strip -->
-    <div id="lh-gc-pdj-notif" style="display:none;margin-top:10px;background:rgba(231,76,60,0.08);border:1.5px solid rgba(231,76,60,0.25);border-radius:10px;padding:9px 12px;align-items:center;gap:8px;cursor:pointer" onclick="lhGo('scr-pdj');lhPdjStep(2)">
+    <div id="lh-gc-pdj-notif" style="display:none;margin-top:10px;background:rgba(231,76,60,0.08);border:1.5px solid rgba(231,76,60,0.25);border-radius:10px;padding:9px 12px;align-items:center;gap:8px;cursor:pointer" onclick="lhGo('scr-pdj');if(lhPdjClientData.identified){lhPdjStep(2);}else{lhPdjStep(1);}">
       <div style="width:8px;height:8px;border-radius:50%;background:#e74c3c;flex-shrink:0;animation:lhPulse 1.5s ease infinite"></div>
       <div id="lh-gc-pdj-notif-txt" style="font-size:11px;color:#c0392b;font-weight:600;flex:1"></div>
       <div style="font-size:11px;color:#c0392b;font-weight:700">Programmer →</div>
@@ -1292,6 +1292,9 @@ function lhApplyParams(params){
     }
   }
 
+  /* Stocker le token toujours */
+  lhGuestToken=params.get?params.get('token')||token||'':'';
+
   if(pdj>0){
     var badge=document.getElementById('lh-pdj-badge');
     if(badge)badge.style.display='flex';
@@ -1316,7 +1319,6 @@ function lhApplyParams(params){
     var cEn=document.getElementById('lh-pdj-counter-en');
     if(cEn)cEn.textContent=pdjEnfant;
     lhPdjPrepaidEnfant=pdjEnfant;
-    lhGuestToken=params.get?params.get('token')||'':'';
     var hint=document.getElementById('lh-pdj-s2-hint');
     if(hint)hint.style.display='none';
     var startBtn=document.getElementById('lh-pdj-start-btn');
@@ -1344,13 +1346,19 @@ function lhApplyParams(params){
   if(token){
     var gcard=document.getElementById('lh-guest-card');
     if(gcard)gcard.style.display='block';
+    lhGuestToken=token; /* Stocker le token immédiatement */
 
     fetch('https://n8n.solvia.pro/webhook/pdj-status?token='+encodeURIComponent(token))
       .then(function(r){return r.json();})
       .then(function(data){
-        if(data.error){return;}
+        if(data.error){
+          /* Token invalide — cacher la guest card */
+          if(gcard)gcard.style.display='none';
+          return;
+        }
         lhApplyParams({
           get:function(k){
+            if(k==='token') return token;
             if(k==='prenom') return data.prenom||'';
             if(k==='chambre') return String(data.chambre||'');
             if(k==='pdj') return String(data.pdj_restant_adulte||0);
