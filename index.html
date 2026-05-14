@@ -478,13 +478,23 @@ function lhRenderDays(){
   var c=document.getElementById('lh-pdj-days');
   var grandTotal=0;var totalAd=0;var totalEn=0;
   var html='';
+  var cumAd=0,cumEn=0;
   lhPdjDays.forEach(function(d,i){
     grandTotal+=d.total;totalAd+=d.ad;totalEn+=d.en;
     html+='<div style="display:flex;align-items:center;gap:10px;background:white;border-radius:10px;padding:10px 12px;margin-bottom:6px;border:1px solid rgba(31,59,45,0.07)">';
     html+='<div style="flex:1">';
     html+='<div style="font-size:12px;font-weight:700;color:#1F3B2D">'+lhFmtDate(d.date)+'</div>';
-    var isSuppl=lhPdjPrepaid>0&&i>=lhPdjPrepaid;
-    var pInfo=isSuppl?'<span style="color:#1F3B2D;font-weight:600">+'+d.total+'€ supplément</span>':'';
+    /* Calculer supplément réel pour ce jour */
+    cumAd+=d.ad; cumEn+=d.en;
+    var supplAd=Math.max(0,cumAd-lhPdjPrepaid)*12;
+    var supplEn=Math.max(0,cumEn-lhPdjPrepaidEnfant)*6;
+    var supplJour=supplAd+supplEn;
+    /* Supplément du jour précédent */
+    var prevAd=cumAd-d.ad; var prevEn=cumEn-d.en;
+    var supplPrevAd=Math.max(0,prevAd-lhPdjPrepaid)*12;
+    var supplPrevEn=Math.max(0,prevEn-lhPdjPrepaidEnfant)*6;
+    var supplCeJour=supplJour-(supplPrevAd+supplPrevEn);
+    var pInfo=supplCeJour>0?'<span style="color:#1F3B2D;font-weight:600">+'+supplCeJour+'€ supplément</span>':'';
     html+='<div style="font-size:10px;color:#999">'+d.time+' · '+d.ad+' pers.'+(d.en>0?' + '+d.en+' enf.':'')+(pInfo?' · '+pInfo:'')+'</div>';
     html+='</div>';
     html+='<button onclick="lhRemoveDay('+i+')" style="width:28px;height:28px;border-radius:50%;border:none;background:rgba(231,76,60,0.08);color:#e74c3c;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>';
@@ -515,7 +525,7 @@ function lhRenderDays(){
     sub.style.display='block';
     var suppl=lhPdjSupplement();
     var suppHtml='';
-    if(lhPdjPrepaid>0){
+    if(lhPdjPrepaid>0||lhPdjPrepaidEnfant>0){
       suppHtml=suppl>0
         ?'<div style="margin-top:6px;padding:7px 11px;background:rgba(31,59,45,0.05);border-radius:9px;border-left:3px solid rgba(31,59,45,0.2);font-size:11px;color:#1F3B2D;font-weight:600">+'+suppl+'€ en supplément</div>'
         :'';
