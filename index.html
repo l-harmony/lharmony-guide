@@ -677,7 +677,7 @@ function lhConfirmPdj(){
         errMsg=document.createElement('div');
         errMsg.id='lh-pdj-stripe-err';
         errMsg.style.cssText='margin-top:12px;padding:12px 16px;background:#fff0f0;border-radius:12px;font-size:11px;color:#c0392b;text-align:center;line-height:1.6';
-        errMsg.innerHTML='Une erreur est survenue. Veuillez réessayer ou contacter l'établissement.<br><a href="tel:+33XXXXXXXXX" style="color:#c0392b;font-weight:700">Appeler L'Harmony</a>';
+        errMsg.innerHTML="Une erreur est survenue. Veuillez réessayer ou contacter l’établissement.<br><a href='tel:+33XXXXXXXXX' style='color:#c0392b;font-weight:700'>Appeler L’Harmony</a>";
         btn.parentNode.appendChild(errMsg);
       }
       setTimeout(function(){btn.textContent='Payer maintenant →';},3000);
