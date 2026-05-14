@@ -390,7 +390,9 @@ var lhPdjDays=[];
 var lhJoursFR=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 var lhPdjPayMethod='stripe';
 var lhPdjPrepaid=0;
+var lhPdjPrepaidEnfant=0;
 var lhPdjClientData={};
+var lhGuestToken='';
 
 var lhCalSelectedDate='';
 var lhCurTime='8h30',lhCurAd=1,lhCurEn=0,lhSelectedDays={};
@@ -398,15 +400,18 @@ var LH_MONTHS_FR=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Ao
 
 function lhInitDayCards(){
   /* Show counter immediately if prepaid */
-  if(lhPdjPrepaid>0){
+  if(lhPdjPrepaid>0||lhPdjPrepaidEnfant>0){
     var counter=document.getElementById('lh-pdj-counter');
     if(counter)counter.style.display='block';
     var cTxt=document.getElementById('lh-pdj-counter-txt');
-    var extraEl=document.getElementById('lh-pdj-counter-extra');
-    var adProg=0;lhPdjDays.forEach(function(d){adProg+=d.ad;});
-    var reste=lhPdjPrepaid-adProg;
-    if(cTxt)cTxt.textContent='Petits-déjeuners déjà payés à programmer : '+(reste>0?reste:0);
-    if(extraEl)extraEl.style.display='none';
+    var adProg2=0;lhPdjDays.forEach(function(d){adProg2+=d.ad;});
+    var enProg2=0;lhPdjDays.forEach(function(d){enProg2+=d.en;});
+    var resteAd2=Math.max(0,lhPdjPrepaid-adProg2);
+    var resteEn2=Math.max(0,lhPdjPrepaidEnfant-enProg2);
+    var totalReste2=resteAd2+resteEn2;
+    if(cTxt)cTxt.textContent='Vous avez '+totalReste2+' petit-déjeuner'+(totalReste2>1?'s':'')+' déjà payé'+(totalReste2>1?'s':'')+' à programmer';
+    var cAd3=document.getElementById('lh-pdj-counter-ad');if(cAd3)cAd3.textContent=resteAd2;
+    var cEn3=document.getElementById('lh-pdj-counter-en');if(cEn3)cEn3.textContent=resteEn2;
   }
   var inp=document.getElementById('lh-pdj-add-date');
   if(!inp)return;
@@ -629,7 +634,7 @@ function lhConfirmPdj(){
 
   var webhookUrl='https://n8n.solvia.pro/webhook/5c29c8e4-5453-4c59-a0b8-12f0304c0cab';
   var effectivePay=(lhPdjPrepaid>0&&lhPdjSupplement()===0)?'confirmation':lhPdjPayMethod;
-  var webhookData={client:{nom:nom,prenom:prenom,email:email,room:room},jours:lhPdjDays,total:grandTotal,paiement:effectivePay};
+  var webhookData={client:{nom:nom,prenom:prenom,email:email,room:room,token:lhGuestToken},jours:lhPdjDays,total:grandTotal,paiement:effectivePay};
 
   /* Send to Web3Forms (email notif) */
   var emailData={
@@ -639,7 +644,8 @@ function lhConfirmPdj(){
     email:email||'non renseigné',
     message:'RÉSERVATION PETIT-DÉJEUNER\n\nClient : '+prenom+' '+nom+'\nChambre : '+(room||'?')+'\nEmail : '+(email||'?')+'\nPaiement : '+(lhPdjPayMethod==='stripe'?'Carte bancaire':'Sur place')+'\n\nDÉTAIL :\n'+detail+'\n\nTOTAL : '+grandTotal+'€'
   };
-  fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(emailData)}).catch(function(){});
+  /* Email Web3Forms désactivé */
+  // fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(emailData)}).catch(function(){});
 
   /* Send to n8n webhook — wait for response */
   fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(webhookData)})
@@ -666,6 +672,14 @@ function lhConfirmPdj(){
       lhPdjStep(4);
     } else {
       btn.disabled=false;btn.textContent='Erreur — réessayez';
+      var errMsg=document.getElementById('lh-pdj-stripe-err');
+      if(!errMsg){
+        errMsg=document.createElement('div');
+        errMsg.id='lh-pdj-stripe-err';
+        errMsg.style.cssText='margin-top:12px;padding:12px 16px;background:#fff0f0;border-radius:12px;font-size:11px;color:#c0392b;text-align:center;line-height:1.6';
+        errMsg.innerHTML='Une erreur est survenue. Veuillez réessayer ou contacter l'établissement.<br><a href="tel:+33XXXXXXXXX" style="color:#c0392b;font-weight:700">Appeler L'Harmony</a>';
+        btn.parentNode.appendChild(errMsg);
+      }
       setTimeout(function(){btn.textContent='Payer maintenant →';},3000);
     }
   });
@@ -676,9 +690,17 @@ function lhPdjReset(){
   lhPdjDays=[];lhPdjPayMethod='place';lhSelectedDays={};lhCurTime='8h30';lhCurAd=1;lhCurEn=0;
   document.getElementById('lh-pdj-start-btn').style.display='block';
   document.querySelectorAll('#lh-app .lh-pdj-step').forEach(function(s){s.style.display='none';});
-  ['lh-pdj-nom','lh-pdj-prenom','lh-pdj-email','lh-pdj-room'].forEach(function(id){
-    var el=document.getElementById(id);if(el)el.value='';
-  });
+  /* Re-remplir champs client si identifié par token */
+  if(lhPdjClientData.identified){
+    var fP=document.getElementById('lh-pdj-prenom');if(fP)fP.value=lhPdjClientData.prenom||'';
+    var fN=document.getElementById('lh-pdj-nom');if(fN)fN.value=lhPdjClientData.nom||'';
+    var fE=document.getElementById('lh-pdj-email');if(fE)fE.value=lhPdjClientData.email||'';
+    var fR=document.getElementById('lh-pdj-room');if(fR)fR.value=lhPdjClientData.chambre||'';
+  } else {
+    ['lh-pdj-nom','lh-pdj-prenom','lh-pdj-email','lh-pdj-room'].forEach(function(id){
+      var el=document.getElementById(id);if(el)el.value='';
+    });
+  }
   lhRenderDays();
 }
 </script>
@@ -939,9 +961,24 @@ function lhPdjReset(){
     <div class="lh-pdj-step" id="lh-pdj-s2" style="display:none">
 
       <!-- PREPAID BANNER -->
-      <!-- PREPAID COUNTER -->
-      <div id="lh-pdj-counter" style="display:none;margin-bottom:14px;text-align:center;padding:10px 0">
-        <div id="lh-pdj-counter-txt" style="font-size:13px;color:#1F3B2D;font-weight:600"></div>
+      <div id="lh-pdj-counter" style="display:none;margin-bottom:16px">
+        <div style="background:#fff0f0;border:2px solid #e74c3c;border-radius:16px;padding:18px 20px;animation:lhPulse 2s ease infinite">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <span style="font-size:18px">🔴</span>
+            <div id="lh-pdj-counter-txt" style="font-size:13px;font-weight:700;color:#c0392b;line-height:1.4"></div>
+          </div>
+          <div style="display:flex;gap:12px;margin-bottom:10px">
+            <div style="flex:1;background:white;border-radius:10px;padding:10px;text-align:center">
+              <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;font-weight:600;margin-bottom:4px">&#x1F464; Adultes</div>
+              <div id="lh-pdj-counter-ad" style="font-size:22px;font-weight:700;color:#c0392b">0</div>
+            </div>
+            <div style="flex:1;background:white;border-radius:10px;padding:10px;text-align:center">
+              <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;font-weight:600;margin-bottom:4px">&#x1F9D2; Enfants</div>
+              <div id="lh-pdj-counter-en" style="font-size:22px;font-weight:700;color:#c0392b">0</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#c0392b;text-align:center;font-weight:500">Choisissez vos cr&#xe9;neaux ci-dessous &#x2193;</div>
+        </div>
         <div id="lh-pdj-counter-extra" style="display:none;font-size:11px;color:#777;margin-top:4px"></div>
       </div>
 
@@ -1221,6 +1258,7 @@ function lhApplyParams(params){
   var prenom=params.get?params.get('prenom'):params.prenom||'';
   var chambre=params.get?params.get('chambre'):params.chambre||'';
   var pdj=parseInt(params.get?params.get('pdj'):params.pdj||'0',10);
+  var pdjEnfant=parseInt(params.get?params.get('pdj_enfant'):params.pdj_enfant||'0',10);
 
   if(!prenom && !chambre && !pdj) return;
 
@@ -1265,9 +1303,19 @@ function lhApplyParams(params){
     var notif=document.getElementById('lh-gc-pdj-notif');
     var notifTxt=document.getElementById('lh-gc-pdj-notif-txt');
     if(notif)notif.style.display='flex';
-    if(notifTxt)notifTxt.textContent=pdj+' petit-déjeuner'+(pdj>1?'s':'')+' prépayé'+(pdj>1?'s':'')+' à programmer';
+    var totalPdj=pdj+pdjEnfant;
+    if(notifTxt)notifTxt.textContent=totalPdj+' petit-déjeuner'+(totalPdj>1?'s':'')+' prépayé'+(totalPdj>1?'s':'')+' à programmer';
     var counter=document.getElementById('lh-pdj-counter');
     if(counter)counter.style.display='block';
+    // Titre bannière alerte
+    var cTxt=document.getElementById('lh-pdj-counter-txt');
+    if(cTxt)cTxt.textContent='Vous avez '+totalPdj+' petit-déjeuner'+(totalPdj>1?'s':'')+' déjà payé'+(totalPdj>1?'s':'')+' à programmer';
+    var cAd=document.getElementById('lh-pdj-counter-ad');
+    if(cAd)cAd.textContent=pdj;
+    var cEn=document.getElementById('lh-pdj-counter-en');
+    if(cEn)cEn.textContent=pdjEnfant;
+    lhPdjPrepaidEnfant=pdjEnfant;
+    lhGuestToken=params.get?params.get('token')||'':'';
     var hint=document.getElementById('lh-pdj-s2-hint');
     if(hint)hint.style.display='none';
     var startBtn=document.getElementById('lh-pdj-start-btn');
