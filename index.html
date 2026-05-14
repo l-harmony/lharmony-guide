@@ -483,7 +483,7 @@ function lhRenderDays(){
     html+='<div style="flex:1">';
     html+='<div style="font-size:12px;font-weight:700;color:#1F3B2D">'+lhFmtDate(d.date)+'</div>';
     var isSuppl=lhPdjPrepaid>0&&i>=lhPdjPrepaid;
-    var pInfo=isSuppl?'<span style="color:#e74c3c;font-weight:700">+'+d.total+'€ supplément</span>':'';
+    var pInfo=isSuppl?'<span style="color:#1F3B2D;font-weight:600">+'+d.total+'€ supplément</span>':'';
     html+='<div style="font-size:10px;color:#999">'+d.time+' · '+d.ad+' pers.'+(d.en>0?' + '+d.en+' enf.':'')+(pInfo?' · '+pInfo:'')+'</div>';
     html+='</div>';
     html+='<button onclick="lhRemoveDay('+i+')" style="width:28px;height:28px;border-radius:50%;border:none;background:rgba(231,76,60,0.08);color:#e74c3c;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>';
@@ -496,32 +496,27 @@ function lhRenderDays(){
   var bubbles=document.getElementById('lh-pdj-counter-bubbles');
   var extraEl=document.getElementById('lh-pdj-counter-extra');
   var cTxt=document.getElementById('lh-pdj-counter-txt');
-  if(lhPdjPrepaid>0){
-    var added=lhPdjDays.length;
-    var supplCnt=Math.max(0,added-lhPdjPrepaid);
-    if(supplCnt>0&&extraEl){extraEl.style.display='block';extraEl.textContent='+'+supplCnt+' matin'+(supplCnt>1?'s':'')+' en supplément';}
-    else if(extraEl){extraEl.style.display='none';}
-    if(cTxt){
-      /* Count adults programmed vs prepaid quota */
-      var adProg=0;lhPdjDays.forEach(function(d){adProg+=d.ad;});
-      var reste=lhPdjPrepaid-adProg;
-      if(reste>0){
-        cTxt.textContent='Petit-déjeuners déjà payés à programmer : '+reste;
-      } else if(reste===0){
-        cTxt.textContent='Petit-déjeuners déjà payés à programmer : 0';
-      } else {
-        cTxt.textContent='Petit-déjeuners déjà payés à programmer : 0';
-        if(extraEl){extraEl.style.display='block';extraEl.style.color='#777';extraEl.textContent='+'+(adProg-lhPdjPrepaid)+' en supplément';}
-      }
-    }
+  if(lhPdjPrepaid>0||lhPdjPrepaidEnfant>0){
+    var adProg=0;lhPdjDays.forEach(function(d){adProg+=d.ad;});
+    var enProg=0;lhPdjDays.forEach(function(d){enProg+=d.en;});
+    var resteAd=Math.max(0,lhPdjPrepaid-adProg);
+    var resteEn=Math.max(0,lhPdjPrepaidEnfant-enProg);
+    var totalReste=resteAd+resteEn;
+    var cAdEl=document.getElementById('lh-pdj-counter-ad');if(cAdEl)cAdEl.textContent=resteAd;
+    var cEnEl=document.getElementById('lh-pdj-counter-en');if(cEnEl)cEnEl.textContent=resteEn;
+    var counter=document.getElementById('lh-pdj-counter');
+    if(counter)counter.style.display=totalReste>0?'block':'none';
+    if(cTxt&&totalReste>0)cTxt.textContent='Vous avez '+totalReste+' petit-déjeuner'+(totalReste>1?'s':'')+' déjà payé'+(totalReste>1?'s':'')+' à programmer';
+    if(extraEl)extraEl.style.display='none';
   }
+
   if(lhPdjDays.length>0){
     sub.style.display='block';
     var suppl=lhPdjSupplement();
     var suppHtml='';
     if(lhPdjPrepaid>0){
       suppHtml=suppl>0
-        ?'<div style="margin-top:6px;padding:7px 11px;background:rgba(31,59,45,0.05);border-radius:9px;border-left:3px solid rgba(31,59,45,0.2);font-size:11px;color:#555;font-weight:600">+'+suppl+'€ en supplément</div>'
+        ?'<div style="margin-top:6px;padding:7px 11px;background:rgba(31,59,45,0.05);border-radius:9px;border-left:3px solid rgba(31,59,45,0.2);font-size:11px;color:#1F3B2D;font-weight:600">+'+suppl+'€ en supplément</div>'
         :'';
     }
     var summaryTxt=lhPdjDays.length+' petit-déjeuner'+(lhPdjDays.length>1?'s':'')+' programmé'+(lhPdjDays.length>1?'s':'');
@@ -970,7 +965,7 @@ function lhPdjReset(){
       <div id="lh-pdj-counter" style="display:none;margin-bottom:16px">
         <div style="background:#fff0f0;border:2px solid #e74c3c;border-radius:16px;padding:18px 20px;animation:lhPulse 2s ease infinite">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-            <span style="font-size:18px">🔴</span>
+            
             <div id="lh-pdj-counter-txt" style="font-size:13px;font-weight:700;color:#c0392b;line-height:1.4"></div>
           </div>
           <div style="display:flex;gap:12px;margin-bottom:10px">
