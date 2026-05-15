@@ -449,7 +449,15 @@ function lhAddSelectedDays(){
   if(ad===0&&en===0)return; /* Bloquer si rien sélectionné */
   var total=ad*12+en*6;
   if(!lhPdjDays.some(function(x){return x.date===ds&&x.time===lhCurTime;})){
-    lhPdjDays.push({date:ds,time:lhCurTime,adultes:ad,ad:ad,enfants:en,en:en,total:total});
+    // Calculer statut : prépayé si dans le quota, sinon en attente
+    var adProg=lhPdjDays.reduce(function(s,d){return s+d.ad;},0);
+    var enProg=lhPdjDays.reduce(function(s,d){return s+d.en;},0);
+    var resteAdQuota=Math.max(0,lhPdjPrepaid-adProg);
+    var resteEnQuota=Math.max(0,lhPdjPrepaidEnfant-enProg);
+    var adPrepaid=Math.min(ad,resteAdQuota);
+    var enPrepaid=Math.min(en,resteEnQuota);
+    var statut=(adPrepaid>=ad&&enPrepaid>=en)?'Prépayé':'En attente ';
+    lhPdjDays.push({date:ds,time:lhCurTime,adultes:ad,ad:ad,enfants:en,en:en,total:total,statut:statut});
   }
   /* advance to next day automatically */
   var d=new Date(ds);d.setDate(d.getDate()+1);
@@ -642,8 +650,8 @@ function lhConfirmPdj(){
   var email=document.getElementById('lh-pdj-email').value.trim();
   var room=document.getElementById('lh-pdj-room').value.trim();
   if(lhPdjDays.length===0)return;
-  var grandTotal=0;
-  var detail=lhPdjDays.map(function(d){grandTotal+=d.total;return lhFmtDate(d.date)+' à '+d.time+' — '+d.ad+' adulte(s), '+d.en+' enfant(s) = '+d.total+'€';}).join('\n');
+  var grandTotal=lhPdjSupplement();
+  var detail=lhPdjDays.map(function(d){return lhFmtDate(d.date)+' à '+d.time+' — '+d.ad+' adulte(s), '+d.en+' enfant(s) = '+d.total+'€';}).join('\n');
 
   btn.disabled=true;btn.textContent='Envoi en cours...';
 
