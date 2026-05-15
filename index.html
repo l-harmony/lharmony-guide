@@ -237,7 +237,7 @@ if(!LH_T[LH_LANG])LH_LANG='fr';
 function lhT(k){return(LH_T[LH_LANG]&&LH_T[LH_LANG][k])||LH_T[LH_FB][k]||LH_T['fr'][k]||k;}
 function lhGo(id){
   if(id==='scr-pdj'&&lhPdjClientData.identified){
-    /* identified user — go directly to step 2 */
+    /* identified — aller direct à l'écran PDJ step 2 */
     document.querySelectorAll('#lh-app .scr').forEach(function(s){s.classList.remove('on');});
     var scr=document.getElementById('scr-pdj');
     if(scr){scr.classList.add('on');scr.style.animation='lhFade 0.35s ease';}
