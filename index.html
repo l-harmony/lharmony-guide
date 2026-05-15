@@ -679,6 +679,7 @@ function lhConfirmPdj(){
           : lhPdjDays.length+' petit-déjeuner'+(lhPdjDays.length>1?'s':'')+' · <strong>'+grandTotal+'€</strong><br><br><span style="font-size:11px;color:#aaa">Paiement à l\'accueil ou au moment du petit-déjeuner.<br>Vous allez bientôt recevoir un email de confirmation.</span>'
         );
         document.getElementById('lh-pdj-back-home').style.display='block';
+        lhPdjStep(4);
       }
     } else {btn.disabled=false;btn.textContent='Confirmer la réservation';}
   })
