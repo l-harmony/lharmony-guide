@@ -666,7 +666,7 @@ function lhConfirmPdj(){
   fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(webhookData)})
   .then(function(r){return r.json();})
   .then(function(res){
-    if(res.success){
+    if(res.success||res.data||res){
       if(effectivePay==='stripe' && res.url){
         document.getElementById('lh-pdj-confirm-msg').innerHTML='<div class="lh-spinner"></div>Redirection vers le paiement sécurisé…<br><br><strong style="color:#1F3B2D">Total : '+grandTotal+'€</strong>';
         document.getElementById('lh-pdj-back-home').style.display='none';
