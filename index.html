@@ -682,7 +682,7 @@ function lhConfirmPdj(){
       } else {
         document.getElementById('lh-pdj-confirm-msg').innerHTML='<div style="font-size:32px;margin-bottom:12px">✓</div><strong style="color:#1F3B2D;font-size:15px">Réservation confirmée !</strong><br><br>'
         +(effectivePay==='confirmation'
-          ? lhPdjDays.length+' petit-déjeuner'+(lhPdjDays.length>1?'s':'')+' bien programmé'+(lhPdjDays.length>1?'s':'')+'. Dormez bien, le petit-déj sera là à votre réveil 🌅<br><br><span style=\"font-size:11px;color:#aaa\">Vous allez bientôt recevoir un email de confirmation.</span>'
+          ? lhPdjDays.length+' petit-déjeuner'+(lhPdjDays.length>1?'s':'')+' bien programmé'+(lhPdjDays.length>1?'s':'')+'. Dormez bien, le petit-déj sera là à votre réveil.<br><br><span style=\"font-size:11px;color:#aaa\">Vous allez bientôt recevoir un email de confirmation.</span>'
           : lhPdjDays.length+' petit-déjeuner'+(lhPdjDays.length>1?'s':'')+' · <strong>'+grandTotal+'€</strong><br><br><span style="font-size:11px;color:#aaa">Paiement à l\'accueil ou au moment du petit-déjeuner.<br>Vous allez bientôt recevoir un email de confirmation.</span>'
         );
         document.getElementById('lh-pdj-back-home').style.display='block';
@@ -1253,6 +1253,41 @@ function lhPdjReset(){
   setInterval(function(){hc1=(hc1+1)%3;lhHomeCar(1,hc1);},4500);
   setInterval(function(){hc2=(hc2+1)%3;lhHomeCar(2,hc2);},5500);
   setInterval(function(){rc=(rc+1)%4;lhRsSlide(rc);},4000);
+})();
+/* PAYMENT RETURN DETECTION */
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  var p=params.get('payment');
+  if(!p)return;
+  var token=params.get('token')||'';
+  var newUrl=window.location.pathname+(token?'?token='+token:'');
+  try{history.replaceState({},document.title,newUrl);}catch(e){}
+  var isSuccess=p==='success';
+  function showPaymentModal(){
+    var overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(31,59,45,0.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;animation:lhFade 0.4s ease';
+    var box=document.createElement('div');
+    box.style.cssText='background:#F7F3EC;border-radius:24px;padding:40px 32px;max-width:340px;width:100%;text-align:center;font-family:Montserrat,sans-serif;box-shadow:0 24px 64px rgba(0,0,0,0.3)';
+    var icon=document.createElement('div');
+    icon.style.cssText='font-size:48px;margin-bottom:16px';
+    icon.textContent=isSuccess?'✅':'❌';
+    var title=document.createElement('div');
+    title.style.cssText='font-size:18px;font-weight:700;color:#1F3B2D;margin-bottom:12px';
+    title.textContent=isSuccess?'Paiement confirmé !':'Paiement non finalisé';
+    var msg=document.createElement('div');
+    msg.style.cssText='font-size:12px;color:#777;line-height:1.8;margin-bottom:28px';
+    msg.innerHTML=isSuccess?'Votre petit-déjeuner est bien réservé.<br>Dormez bien, le petit-déj sera là à votre réveil.<br><br><span style="font-size:11px;color:#aaa">Un email de confirmation vous sera envoyé.</span>':'Votre paiement n'a pas été complété.<br>Vous pouvez réessayer depuis le guidebook.';
+    var btn=document.createElement('button');
+    btn.style.cssText='width:100%;padding:14px;background:#1F3B2D;color:#F7F3EC;border:none;border-radius:14px;font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase';
+    btn.textContent=isSuccess?'Parfait, merci !':'Retour au guidebook';
+    btn.onclick=function(){overlay.remove();};
+    box.appendChild(icon);box.appendChild(title);box.appendChild(msg);box.appendChild(btn);
+    overlay.appendChild(box);
+    var app=document.getElementById('lh-app')||document.body;
+    app.appendChild(overlay);
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',showPaymentModal);}
+  else{showPaymentModal();}
 })();
 /* PAYMENT RETURN DETECTION */
 (function(){
