@@ -611,8 +611,7 @@ function lhPdjPreConfirm(){
   /* If prepaid and no supplement: just confirm directly */
   if(lhPdjPrepaid>0&&lhPdjSupplement()===0){lhConfirmPdj();return;}
   if(lhPdjPayMethod==='stripe'){lhConfirmPdj();return;}
-  var grandTotal=0;
-  lhPdjDays.forEach(function(d){grandTotal+=d.total;});
+  var grandTotal=lhPdjSupplement();
   var nb=lhPdjDays.length;
   var modal=document.createElement('div');
   modal.id='lh-confirm-modal';
