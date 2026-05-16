@@ -1378,6 +1378,9 @@ function lhApplyParams(params){
     var fNi=document.getElementById('lh-pdj-nom');if(fNi)fNi.value='Hôte';
     var fEi=document.getElementById('lh-pdj-email');if(fEi)fEi.value=autoEmailId;
     var fRi=document.getElementById('lh-pdj-room');if(fRi)fRi.value=chambre;
+    /* Cacher le bouton "Réserver mon petit-déjeuner" — le menu s'ouvre directement */
+    var startBtnId=document.getElementById('lh-pdj-start-btn');
+    if(startBtnId)startBtnId.style.display='none';
   }
 
   if(pdj>0){
