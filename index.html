@@ -236,6 +236,11 @@ if(!LH_T[LH_LANG])LH_LANG='fr';
 
 function lhT(k){return(LH_T[LH_LANG]&&LH_T[LH_LANG][k])||LH_T[LH_FB][k]||LH_T['fr'][k]||k;}
 function lhGo(id){
+  if(id==='scr-pdj'&&!lhFetchDone){
+    /* Fetch pas encore terminé — attendre */
+    var lhGoWait=setInterval(function(){if(lhFetchDone){clearInterval(lhGoWait);lhGo('scr-pdj');}},100);
+    return;
+  }
   if(id==='scr-pdj'&&lhPdjClientData.identified){
     /* identified — aller direct à l'écran PDJ step 2 */
     document.querySelectorAll('#lh-app .scr').forEach(function(s){s.classList.remove('on');});
@@ -367,6 +372,10 @@ function lhPdjStep(n){
   if(n===1){document.getElementById('lh-pdj-start-btn').style.display='none';}
   if(n===2){lhInitDayCards();var op=document.getElementById('lh-pdj-options');if(op)op.style.display='none';}
   if(n===2){
+    /* Si client identifié par token — bypass validation formulaire */
+    if(lhPdjClientData.identified){
+      var _err=false;
+    } else {
     var _nom=document.getElementById('lh-pdj-nom').value.trim();
     var _prenom=document.getElementById('lh-pdj-prenom').value.trim();
     var _email=document.getElementById('lh-pdj-email').value.trim();
@@ -378,6 +387,7 @@ function lhPdjStep(n){
       document.getElementById(f.id).style.borderColor=ok?'':'#e74c3c';
       if(!ok)_err=true;
     });
+    }
     if(_err){
       document.querySelectorAll('#lh-app .lh-pdj-step').forEach(function(s){s.style.display='none';});
       document.getElementById('lh-pdj-s1').style.display='block';
@@ -399,6 +409,7 @@ var lhPdjPrepaid=0;
 var lhPdjPrepaidEnfant=0;
 var lhPdjClientData={};
 var lhGuestToken='';
+var lhFetchDone=false; /* true quand le fetch n8n est terminé */
 
 var lhCalSelectedDate='';
 var lhCurTime='8h30',lhCurAd=0,lhCurEn=0,lhSelectedDays={};
@@ -1408,14 +1419,17 @@ function lhApplyParams(params){
     if(gcard)gcard.style.display='block';
     lhGuestToken=token; /* Stocker le token immédiatement */
 
+
     fetch('https://n8n.solvia.pro/webhook/pdj-status?token='+encodeURIComponent(token))
       .then(function(r){return r.json();})
       .then(function(data){
         if(data.error){
           /* Token invalide — cacher la guest card */
           if(gcard)gcard.style.display='none';
+          lhFetchDone=true;
           return;
         }
+        lhFetchDone=true;
         lhApplyParams({
           get:function(k){
             if(k==='token') return token;
