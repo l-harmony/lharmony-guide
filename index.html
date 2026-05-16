@@ -441,12 +441,17 @@ function lhInitDayCards(){
   var ds=tomorrow.getFullYear()+'-'+String(tomorrow.getMonth()+1).padStart(2,'0')+'-'+String(tomorrow.getDate()).padStart(2,'0');
   inp.value=ds;
   inp.min=ds;
+  /* Activer visuellement le créneau par défaut 8h30 */
+  lhCurTime='8h30';
+  document.querySelectorAll('#lh-app .lh-time-btn').forEach(function(b){b.classList.remove('lh-time-on');});
+  var defBtn=document.getElementById('lh-t-830');
+  if(defBtn)defBtn.classList.add('lh-time-on');
 }
 
 function lhSetTime(t){
   lhCurTime=t;
   document.querySelectorAll('#lh-app .lh-time-btn').forEach(function(b){b.classList.remove('lh-time-on');});
-  var map={'7h30':'lh-t-730','8h00':'lh-t-800','8h30':'lh-t-830','9h00':'lh-t-900'};
+  var map={'7h30':'lh-t-730','8h00':'lh-t-800','8h30':'lh-t-830','9h00':'lh-t-900','9h30':'lh-t-930'};
   var btn=document.getElementById(map[t]);
   if(btn)btn.classList.add('lh-time-on');
 }
@@ -731,7 +736,7 @@ function lhConfirmPdj(){
 /* RESET PDJ FORM */
 function lhPdjReset(){
   lhPdjDays=[];lhPdjPayMethod='place';lhSelectedDays={};lhCurTime='8h30';lhCurAd=0;lhCurEn=0;
-  document.getElementById('lh-pdj-start-btn').style.display='block';
+  if(!lhPdjClientData.identified)document.getElementById('lh-pdj-start-btn').style.display='block';
   document.querySelectorAll('#lh-app .lh-pdj-step').forEach(function(s){s.style.display='none';});
   /* Re-remplir champs client si identifié par token */
   if(lhPdjClientData.identified){
