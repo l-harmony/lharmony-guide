@@ -573,10 +573,12 @@ function lhBuildRecap(){
     grandTotal+=d.total;totalAd+=d.ad;totalEn+=d.en;
     html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(31,59,45,0.06);font-size:12px">';
     html+='<div><strong style="color:#1F3B2D">'+lhFmtDate(d.date)+'</strong> <span style="color:#aaa">'+d.time+'</span></div>';
-    var adSoFar=0;for(var ri=0;ri<idx;ri++)adSoFar+=lhPdjDays[ri].ad;
-    var rIsSuppl=lhPdjPrepaid>0&&adSoFar>=lhPdjPrepaid;
     var rPersStr=(d.ad>0?d.ad+' adulte'+(d.ad>1?'s':''):'')+(d.ad>0&&d.en>0?' + ':'')+(d.en>0?d.en+' enfant'+(d.en>1?'s':''):'');
-    html+='<div style="color:#888;font-weight:400">'+rPersStr+(rIsSuppl?' (+'+d.total+'€)':'')+'</div>';
+    var rStatut=d.statut||'En attente ';
+    var rPrix=rStatut==='Prépayé'
+      ?'<span style="color:#27ae60;font-weight:700;font-size:11px">Inclus</span>'
+      :'<span style="color:#1F3B2D;font-weight:700">'+d.total+'€</span>';
+    html+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px"><div style="color:#888;font-weight:400">'+rPersStr+'</div>'+rPrix+'</div>';
     html+='</div>';
   });
   document.getElementById('lh-pdj-recap-days').innerHTML=html;
