@@ -242,7 +242,11 @@ function lhGo(id){
     return;
   }
   if(id==='scr-pdj'&&lhPdjClientData.identified){
-    /* identified — aller direct à l'écran PDJ step 2 */
+    /* identified — remplir les champs puis aller direct step 2 */
+    var fP=document.getElementById('lh-pdj-prenom');if(fP)fP.value=lhPdjClientData.prenom||'';
+    var fN=document.getElementById('lh-pdj-nom');if(fN)fN.value=lhPdjClientData.nom||'';
+    var fE=document.getElementById('lh-pdj-email');if(fE)fE.value=lhPdjClientData.email||'';
+    var fR=document.getElementById('lh-pdj-room');if(fR)fR.value=lhPdjClientData.chambre||'';
     document.querySelectorAll('#lh-app .scr').forEach(function(s){s.classList.remove('on');});
     var scr=document.getElementById('scr-pdj');
     if(scr){scr.classList.add('on');scr.style.animation='lhFade 0.35s ease';}
@@ -1366,6 +1370,16 @@ function lhApplyParams(params){
   /* Stocker le token toujours */
   lhGuestToken=params.get?params.get('token')||token||'':'';
 
+  /* Identifier le client dès qu'on a prenom+chambre */
+  if(prenom&&chambre){
+    var autoEmailId=prenom.toLowerCase().replace(/[^a-z]/g,'')+'.ch'+chambre+'@guest.lharmony.fr';
+    lhPdjClientData={identified:true,nom:'Hôte',prenom:prenom,email:autoEmailId,chambre:chambre};
+    var fPi=document.getElementById('lh-pdj-prenom');if(fPi)fPi.value=prenom;
+    var fNi=document.getElementById('lh-pdj-nom');if(fNi)fNi.value='Hôte';
+    var fEi=document.getElementById('lh-pdj-email');if(fEi)fEi.value=autoEmailId;
+    var fRi=document.getElementById('lh-pdj-room');if(fRi)fRi.value=chambre;
+  }
+
   if(pdj>0){
     var badge=document.getElementById('lh-pdj-badge');
     if(badge)badge.style.display='flex';
@@ -1395,12 +1409,6 @@ function lhApplyParams(params){
     var startBtn=document.getElementById('lh-pdj-start-btn');
     if(startBtn)startBtn.style.display='none';
     lhPdjPrepaid=pdj;
-    var autoEmail=prenom.toLowerCase().replace(/[^a-z]/g,'')+'.ch'+chambre+'@guest.lharmony.fr';
-    lhPdjClientData={identified:true,nom:'Hôte',prenom:prenom,email:autoEmail,chambre:chambre};
-    var fP=document.getElementById('lh-pdj-prenom');if(fP)fP.value=prenom;
-    var fN=document.getElementById('lh-pdj-nom');if(fN)fN.value='Hôte';
-    var fE=document.getElementById('lh-pdj-email');if(fE)fE.value=autoEmail;
-    var fR=document.getElementById('lh-pdj-room');if(fR)fR.value=chambre;
   } else if(!chambre){
     if(gcard)gcard.style.display='none';
     document.getElementById('lh-note-generic').style.display='flex';
