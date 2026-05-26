@@ -232,7 +232,7 @@ id:{loc:"L'Harmony · Saint-Arnoult-en-Yvelines",welcome:"Selamat",welSub:"datan
 var LH_FB='en';
 var LH_SAVED=null;try{LH_SAVED=localStorage.getItem('lh-lang');}catch(e){}
 var LH_URL_LANG=null;try{LH_URL_LANG=new URLSearchParams(window.location.search).get('lang');if(LH_URL_LANG)LH_URL_LANG=LH_URL_LANG.toLowerCase();}catch(e){}
-var LH_LANG=LH_SAVED||LH_URL_LANG||(navigator.language||'fr').slice(0,2);
+var LH_LANG=LH_URL_LANG||LH_SAVED||(navigator.language||'fr').slice(0,2);
 if(!LH_T[LH_LANG])LH_LANG='fr';
 
 function lhT(k){return(LH_T[LH_LANG]&&LH_T[LH_LANG][k])||LH_T[LH_FB][k]||LH_T['fr'][k]||k;}
