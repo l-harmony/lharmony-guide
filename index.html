@@ -414,6 +414,7 @@ var lhPdjPrepaid=0;
 var lhPdjPrepaidEnfant=0;
 var lhPdjClientData={};
 var lhGuestToken='';
+var lhVideoUrl='';
 var lhFetchDone=false; /* true quand le fetch n8n est terminé */
 
 var lhCalSelectedDate='';
@@ -740,6 +741,15 @@ function lhConfirmPdj(){
   });
 }
 /* end forms */
+/* PLAY VIDEO — replace button with inline player */
+function lhPlayVideo(){
+  if(!lhVideoUrl)return;
+  var box=document.getElementById('lh-vid-box');
+  if(!box)return;
+  box.style.padding='0';box.style.cursor='default';box.onclick=null;
+  box.innerHTML='<video controls autoplay playsinline style="width:100%;border-radius:16px;display:block" src="'+lhVideoUrl+'"></video>';
+}
+
 /* RESET PDJ FORM */
 function lhPdjReset(){
   lhPdjDays=[];lhPdjPayMethod='place';lhSelectedDays={};lhCurTime='8h30';lhCurAd=0;lhCurEn=0;
@@ -924,8 +934,8 @@ function lhMarkPdjBooked(){
     <div><div class="s-ey" data-t="ciEy">Check-in · Check-out</div><div class="s-ti" data-t="ciTi">Votre arrivée</div></div>
   </div>
   <div class="s-body">
-    <div class="vid" onclick="window.open('https://www.youtube.com/','_blank')">
-      <div class="play"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+    <div class="vid" id="lh-vid-box" onclick="lhPlayVideo()" style="display:none">
+      <div class="play" id="lh-vid-play"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
       <div class="vid-lb" data-t="vidLb">Vidéo : comment accéder à l'hôtel</div>
     </div>
     <div class="cd">
@@ -1395,6 +1405,14 @@ function lhApplyParams(params){
     }
   }
 
+  /* Video URL — show video box if available */
+  var videoUrl=params.get?params.get('video_url'):params.video_url||'';
+  if(videoUrl){
+    lhVideoUrl=videoUrl;
+    var vidBox=document.getElementById('lh-vid-box');
+    if(vidBox)vidBox.style.display='flex';
+  }
+
   /* Stocker le token toujours */
   lhGuestToken=params.get?params.get('token')||token||'':'';
 
@@ -1477,6 +1495,7 @@ function lhApplyParams(params){
             if(k==='pdj') return String(data.pdj_restant_adulte||0);
             if(k==='pdj_enfant') return String(data.pdj_restant_enfant||0);
             if(k==='code') return String(data.code_acces||'');
+            if(k==='video_url') return data.video_url||'';
             return '';
           }
         });
