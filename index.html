@@ -303,7 +303,8 @@ function lhStars(n){
   else if(n>=4){
     if(thx)thx.style.display='none';
     if(toast){toast.style.display='block';toast.innerHTML=lhT('avRedirect');}
-    setTimeout(function(){window.open('https://g.page/r/CY-wHW4vERgQEAE/review','_blank');if(toast)toast.style.display='none';},1200);
+    window.open('https://g.page/r/CY-wHW4vERgQEAE/review','_blank');
+    setTimeout(function(){if(toast)toast.style.display='none';},1200);
   } else {
     if(toast)toast.style.display='none';
     if(thx)thx.style.display='block';
